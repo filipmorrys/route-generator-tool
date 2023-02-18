@@ -1,5 +1,8 @@
 package es.indra.tools.route.generator.service;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +17,12 @@ public class TrainService {
   
   public Train save(Train train) {
     return trainDao.save(train);
+  }
+
+  public List<Train> getTrains() {
+    List<Train> trains = new LinkedList<>();
+    trainDao.findAll().forEach(trains::add);
+    return trains;
   }
 }
 

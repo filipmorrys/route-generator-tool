@@ -20,9 +20,15 @@ public class Train {
   
   private String lineId;
   
+  private String lineDescription;
+  
   private String initialNodeId;
   
+  private String initialNodeName;
+  
   private String finalNodeId;
+  
+  private String finalNodeName;
   
   @OneToMany(cascade = CascadeType.ALL)
   private List<RouteNode> nodes;
@@ -75,10 +81,35 @@ public class Train {
     this.finalNodeId = finalNodeId;
   }
 
+  public String getLineDescription() {
+    return lineDescription;
+  }
+
+  public void setLineDescription(String lineDescription) {
+    this.lineDescription = lineDescription;
+  }
+
+  public String getInitialNodeName() {
+    return initialNodeName;
+  }
+
+  public void setInitialNodeName(String initialNodeName) {
+    this.initialNodeName = initialNodeName;
+  }
+
+  public String getFinalNodeName() {
+    return finalNodeName;
+  }
+
+  public void setFinalNodeName(String finalNodeName) {
+    this.finalNodeName = finalNodeName;
+  }
+
   @Override
   public String toString() {
-    return "Train [id=" + id + ", number=" + number + ", lineId=" + lineId + ", initialNodeId=" + initialNodeId
-        + ", finalNodeId=" + finalNodeId + ", nodes=" + nodes + "]";
+    return "Train [id=" + id + ", number=" + number + ", lineId=" + lineId + ", lineDescription=" + lineDescription
+        + ", initialNodeId=" + initialNodeId + ", initialNodeName=" + initialNodeName + ", finalNodeId=" + finalNodeId
+        + ", finalNodeName=" + finalNodeName + ", nodes=" + nodes + "]";
   }
 
 }

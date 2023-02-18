@@ -1,5 +1,6 @@
 package es.indra.tools.route.generator.controller;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,9 +12,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import es.indra.tools.route.generator.dto.topology.GeoNode;
 import es.indra.tools.route.generator.dto.topology.Line;
 import es.indra.tools.route.generator.dto.topology.Movement;
 import es.indra.tools.route.generator.dto.topology.Node;
+import es.indra.tools.route.generator.dto.topology.SearchInfo;
 import es.indra.tools.route.generator.service.TopologyService;
 
 @RestController
@@ -44,5 +47,19 @@ public class TopologyController {
   public Map<String, Movement> getMovementsByLine(@PathVariable String groupId, @PathVariable String lineId) {
     return service.getMovementsByLine(groupId, lineId);
   }
+
+  @GetMapping("/geonodes/{groupId}")
+  public Map<String, GeoNode> getGeoNodes(@PathVariable String groupId) {
+    return service.getGeoNodes(groupId);
+  }
+
+  @GetMapping("/search/{groupId}/{pivots}")
+  public List<String> search(@PathVariable String groupId, @PathVariable LinkedList<String> pivots) {
+    return service.dijkstra(groupId, pivots.get(0), pivots.get(1));
+  }
+  
+  
+  
+  
   
 }

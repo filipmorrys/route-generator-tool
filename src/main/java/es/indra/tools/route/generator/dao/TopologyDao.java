@@ -8,21 +8,23 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.sql.DataSource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import es.indra.tools.route.generator.dto.topology.Arc;
+import es.indra.tools.route.generator.dto.topology.ArcGraph;
 import es.indra.tools.route.generator.dto.topology.CirculationTrack;
 import es.indra.tools.route.generator.dto.topology.Edge;
+import es.indra.tools.route.generator.dto.topology.GeoNode;
 import es.indra.tools.route.generator.dto.topology.Line;
 import es.indra.tools.route.generator.dto.topology.Movement;
 import es.indra.tools.route.generator.dto.topology.Node;
+import es.indra.tools.route.generator.dto.topology.NodeGraph;
 import es.indra.tools.route.generator.dto.topology.Tcz;
 import es.indra.tools.route.generator.dto.topology.Track;
 import es.indra.tools.route.generator.exception.DataAccessException;
@@ -30,8 +32,7 @@ import es.indra.tools.route.generator.exception.DataAccessException;
 @Component
 public class TopologyDao {
   
-  private static final Logger LOGGER = LoggerFactory.getLogger(TopologyDao.class);
-  
+ 
   @Autowired
   @Qualifier("topologyDataSource")
   private DataSource dataSource;
@@ -107,6 +108,23 @@ public class TopologyDao {
       + "  and tm.group_id = ? "
       + "  and tme.group_id = ? "
       + "order by tm.mov_id, tme.tc_order";
+  
+  
+  private static final String QUERY_GEO_NODES = 
+      "select id, name, longitude, latitude, priority_level "
+      + "from tp_nodes tn "
+      + "where group_id = ? "
+      + "  and latitude > 0 ";
+  
+  private static final String QUERY_NODES_GRAPH = 
+      "select id, name "
+      + "from tp_nodes tn "
+      + "where tn.group_id = ? ";
+  
+  private static final String QUERY_ARCS_GRAPH = 
+      "select line_id, distance_even, node_id_a, node_id_b  "
+      + "from tp_arcs ta "
+      + "where ta.group_id = ? ";
   
   /**
    * Devuelve el grupo de topología correspondiente a la fecha actual
@@ -401,6 +419,104 @@ public class TopologyDao {
     return mov.getMovType().concat(";")
         .concat(mov.getStTrackId()).concat(";")
         .concat(mov.getCircTrackId());
+  }
+  
+  public Map<String, GeoNode> getGeoNodes(String groupId) {
+    Map<String, GeoNode> nodes = new HashMap<>();
+    Connection conn = null;
+    PreparedStatement stm = null;
+    ResultSet rs = null;
+    try {
+      conn = dataSource.getConnection();
+      stm = conn.prepareStatement(QUERY_GEO_NODES);
+      stm.setString(1, groupId);
+      rs = stm.executeQuery();
+
+      while (rs.next()) {
+        GeoNode node = new GeoNode();
+        node.setId(rs.getString("id"));
+        node.setName(rs.getString("name"));
+        node.setLongitude(rs.getDouble("longitude"));
+        node.setLatitude(rs.getDouble("latitude"));
+        node.setPriorityLevel(rs.getInt("priority_level"));
+
+        nodes.put(node.getId(), node);
+        
+      }
+      
+    } catch (SQLException e) {
+      throw new DataAccessException("Error obteniendo nodos", e);
+    } finally {
+      try { stm.close(); } catch (SQLException e) { }
+      try { rs.close(); } catch (SQLException e) { }
+      try { conn.close(); } catch (SQLException e) { }
+
+    }    
+    return nodes;
+  }
+
+  public Map<String, NodeGraph> getNodesGraph(String groupId) {
+    Map<String, NodeGraph> nodes = new TreeMap<>();
+    Connection conn = null;
+    PreparedStatement stm = null;
+    ResultSet rs = null;
+    try {
+      conn = dataSource.getConnection();
+      stm = conn.prepareStatement(QUERY_NODES_GRAPH);
+      stm.setString(1, groupId);
+      rs = stm.executeQuery();
+
+      while (rs.next()) {
+        NodeGraph node = new NodeGraph();
+        node.setId(rs.getString("id"));
+        node.setName(rs.getString("name"));
+
+        nodes.put(node.getId(), node);
+        
+      }
+      
+    } catch (SQLException e) {
+      throw new DataAccessException("Error obteniendo nodos del grafo", e);
+    } finally {
+      try { stm.close(); } catch (SQLException e) { }
+      try { rs.close(); } catch (SQLException e) { }
+      try { conn.close(); } catch (SQLException e) { }
+
+    }    
+    return nodes;
+  }
+
+  public List<ArcGraph> getArcsGraph(String groupId) {
+    List<ArcGraph> arcs = new LinkedList<>();
+    Connection conn = null;
+    PreparedStatement stm = null;
+    ResultSet rs = null;
+    try {
+      conn = dataSource.getConnection();
+      stm = conn.prepareStatement(QUERY_ARCS_GRAPH);
+      stm.setString(1, groupId);
+      rs = stm.executeQuery();
+
+      while (rs.next()) {
+        ArcGraph arc = new ArcGraph();
+        arc.setLineId(rs.getString("line_id"));
+        arc.setDistance(rs.getInt("distance_even"));
+        arc.setNodeIdA(rs.getString("node_id_a"));
+        arc.setNodeIdB(rs.getString("node_id_b"));
+
+        arcs.add(arc);
+        
+      }
+      
+    } catch (SQLException e) {
+      throw new DataAccessException("Error obteniendo nodos del grafo", e);
+    } finally {
+      try { conn.close(); } catch (Exception e) { }
+      try { stm.close(); } catch (Exception e) { }
+      try { rs.close(); } catch (Exception e) { }
+
+    }    
+    return arcs;
   }
   
 }
